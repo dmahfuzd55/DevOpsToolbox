@@ -1,0 +1,206 @@
+Update Package Lists:
+---------------------
+dmahfuzd@DESKTOP-OFAE9ET:~$ sudo apt update
+
+
+Install Ansible:
+----------------
+dmahfuzd@DESKTOP-OFAE9ET:~$ sudo apt install ansible
+
+
+Check the Ansible Version:
+--------------------------
+dmahfuzd@DESKTOP-OFAE9ET:~$ ansible --version
+
+
+Create an inventory by adding the IP address or fully qualified domain name (FQDN) of one or more remote systems to /etc/ansible/hosts. The following example adds the IP addresses of three virtual machines in KVM:
+
+[myvirtualmachines]
+192.0.2.50
+192.0.2.51
+192.0.2.52
+
+
+Verify the hosts in your inventory.
+
+ansible all --list-hosts
+hosts (1):
+  192.0.2.50
+  192.0.2.51
+  192.0.2.52
+
+
+
+Set up SSH connections so Ansible can connect to the managed nodes.
+
+a. Add your public SSH key to the authorized_keys file on each remote system.
+   
+  
+
+
+
+b. Test the SSH connections, for example:
+   
+   ssh username@192.0.2.50
+
+
+
+
+
+
+
+sshpass tool install
+--------------------
+sshpass is a tool that allows automation scripts to provide passwords when connecting to SSH servers.
+
+For Ubuntu/Debian:
+
+dmahfuzd@DESKTOP-OFAE9ET:~$ sudo apt-get install sshpass
+
+dmahfuzd@DESKTOP-OFAE9ET:~$ sudo yum install sshpass
+
+
+SSH Key Authentication
+----------------------
+dmahfuzd@DESKTOP-OFAE9ET:~$ cd ~/.ssh
+
+dmahfuzd@DESKTOP-OFAE9ET:~/.ssh$ pwd
+/home/dmahfuzd/.ssh
+
+dmahfuzd@DESKTOP-OFAE9ET:~$ ssh-keygen
+
+dmahfuzd@DESKTOP-OFAE9ET:~$ ls
+id_rsa  id_rsa.pub  known_hosts  known_hosts.old
+
+
+dmahfuzd@DESKTOP-OFAE9ET:~$ chmod 700 ~/.ssh
+dmahfuzd@DESKTOP-OFAE9ET:~$ chmod 600 ~/.ssh/id_rsa
+dmahfuzd@DESKTOP-OFAE9ET:~$ chmod 644 ~/.ssh/id_rsa.pub
+
+dmahfuzd@DESKTOP-OFAE9ET:~/.ssh$ ssh-copy-id -i /home/dmahfuzd/.ssh/id_rsa.pub eai@172.8.9.40
+
+
+sudo configuration ansible agent node
+-------------------------------------
+
+[eai@kmaster ~]$ sudo visudo
+
+username ALL=(ALL) NOPASSWD: ALL
+
+eai ALL=(ALL) NOPASSWD: ALL
+
+
+
+Install python ansible ad hoc commands
+--------------------------------------
+
+dmahfuzd@DESKTOP-OFAE9ET:~/.ssh$ ansible all -i 172.8.9.40,172.8.9.41 -u eai -b --ask-become-pass -m yum -a 'name=python3-setuptools state=present'
+
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible$ ansible -i /mnt/d/DevOps/Ansible/Production/Inventory/inventory.yaml kubernetesnodes -u eai -m command -a "cat /etc/os-release"
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible$ ansible -i /mnt/d/DevOps/Ansible/Production/Inventory/inventory.yaml kubernetesnodes -u eai -m command -a "free -m"
+
+
+
+
+Building an inventory
+---------------------
+
+Inventories organize managed nodes in centralized files that provide Ansible with system information and network locations. Using an inventory file, Ansible can manage a large number of hosts with a single command. Inventories also help you use Ansible more efficiently by reducing the number of command-line options you need to specify. For example, inventories usually contain the SSH user so you do not need to include the -u flag when running Ansible commands.
+
+Inventory files can be in INI or YAML format.
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ pwd
+/mnt/d/DevOps/Ansible/Inventory
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ ls
+inventory.ini  inventory.yaml
+
+
+In inventory.yaml file add following agent information
+
+kubernetesnodes:
+  hosts:
+    kmaster:
+      ansible_host: 172.8.9.41
+    kworker:
+      ansible_host: 172.8.9.40
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ ansible-inventory -i /mnt/d/DevOps/Ansible/Inventory/inventory.yaml --list
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ ansible kubernetesnodes -u eai -m ping -i /mnt/d/DevOps/Ansible/Inventory/inventory.yaml
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ ansible kubernetesnodes -u eai -b --ask-become-pass  -m ping -i /mnt/d/DevOps/Ansible/Inventory/inventory.yaml
+
+
+
+ansible kubernetesnodes -u eai -m -b --ask-become-pass -a "cat /etc/os-release" -i /mnt/d/DevOps/Ansible/Inventory/inventory.yaml
+
+
+Playbook
+--------
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ ansible-playbook -i /mnt/d/DevOps/GitHub/DevOps/Ansible/Testing/Kafka/Inventory/inventory.yaml -u eai -b --ask-become-pass /mnt/d/DevOps/GitHub/DevOps/Ansible/Testing/Kafka/Playbook/playbook.yaml
+
+
+
+
+
+Kubernetes
+----------
+
+kubernetesnodes
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ ansible-playbook -i /mnt/d/DevOps/Ansible/Inventory/inventory.yaml -l kubernetesnodes -u eai -b --ask-become-pass /mnt/d/DevOps/Ansible/Playbook/Kubernetes/bootstrap.yaml
+
+
+
+kubernetesmaster
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ ansible-playbook -i /mnt/d/DevOps/Ansible/Inventory/inventory.yaml -l kubernetesmaster -u eai -b --ask-become-pass /mnt/d/DevOps/Ansible/Playbook/Kubernetes/bootstrap_kmaster.yaml
+
+
+
+kubernetesworker
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/Ansible/Inventory$ ansible-playbook -i /mnt/d/DevOps/Ansible/Inventory/inventory.yaml -l kubernetesworker  -u eai -b --ask-become-pass /mnt/d/DevOps/Ansible/Playbook/Kubernetes/bootstrap_kworker.yaml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

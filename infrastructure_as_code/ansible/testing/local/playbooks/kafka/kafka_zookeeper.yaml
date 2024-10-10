@@ -1,0 +1,52 @@
+---
+- name: Setup ZooKeeper Cluster
+  hosts: clusternodes
+  become: true
+  gather_facts: true
+  vars:
+    java_version: "java-11-openjdk-devel"
+    zookeeper_version: "3.5.9"
+    zookeeper_install_dir: "/opt/zookeeper"
+    zookeeper_data_dir: "/tmp/zookeeper"
+  
+  tasks:
+    - name: Update All Packages with Allow Erasing
+      command: yum update -y --allowerasing
+    
+    - name: Install Java
+      package:
+        name: "{{ java_version }}"
+        state: present
+
+    - name: Download ZooKeeper
+      ansible.builtin.get_url:
+        url: "https://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/apache-zookeeper-{{ zookeeper_version }}.tar.gz"
+        dest: "/tmp/zookeeper-{{ zookeeper_version }}.tar.gz"
+
+    - name: Extract ZooKeeper
+      ansible.builtin.unarchive:
+        src: "/tmp/zookeeper-{{ zookeeper_version }}.tar.gz"
+        dest: "{{ zookeeper_install_dir }}"
+        remote_src: true
+      notify: Restart ZooKeeper
+
+    - name: Configure ZooKeeper
+      template:
+        src: "zoo.cfg.j2"
+        dest: "{{ zookeeper_install_dir }}/conf/zoo.cfg"
+      notify: Restart ZooKeeper
+
+    - name: Create Data Directories and myid files
+      ansible.builtin.file:
+        path: "{{ zookeeper_data_dir }}-{{ inventory_hostname_short }}"
+        state: directory
+      loop: "{{ range(1, 4) | list }}"
+      loop_control:
+        index_var: myid
+      notify: Restart ZooKeeper
+
+  handlers:
+    - name: Restart ZooKeeper
+      ansible.builtin.systemd:
+        name: zookeeper
+        state: restarted

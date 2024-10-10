@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bai-xml-deployment
+  namespace: test
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bai-xml
+  template:
+    metadata:
+      labels:
+        app: bai-xml
+    spec:
+      containers:
+      - name: bai-xml-container
+        image: dmahfuzd/bai_xml
+        ports:
+        - containerPort: 8822

@@ -1,0 +1,8 @@
+tickTime=2000
+dataDir={{ zookeeper_data_dir }}-{{ inventory_hostname_short }}
+clientPort=2181
+initLimit=5
+syncLimit=2
+{% for host in groups['zookeeper-nodes'] %}
+server.{{ loop.index }}={{ hostvars[host].ansible_host }}:2888:3888
+{% endfor %}

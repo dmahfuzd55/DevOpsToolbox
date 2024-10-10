@@ -1,0 +1,23 @@
+kafkanodes:
+  hosts:
+    kafkanode1:
+      ansible_host: 172.8.9.41
+    kafkanode2:
+      ansible_host: 172.8.9.40
+    kafkanode3:
+      ansible_host: 172.8.9.37
+
+kafkaworkernode1:
+  hosts:
+    kafkanode1:
+      ansible_host: 172.8.9.41
+kafkaworkernode2:
+  hosts:
+    kafkanode2:
+      ansible_host: 172.8.9.40
+kafkaworkernode3:
+  hosts:
+    kafkanode3:
+      ansible_host: 172.8.9.37
+
+    

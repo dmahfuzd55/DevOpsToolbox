@@ -1,0 +1,62 @@
+---
+- name: Rollback Kubernetes Nodes Configuration
+  hosts: all
+  become: true
+  tasks:
+    - name: Remove Kubernetes components (kubeadm, kubelet, kubectl)
+      yum:
+        name:
+          - kubeadm
+          - kubelet
+          - kubectl
+        state: absent
+
+    - name: Remove Kubernetes repository
+      yum_repository:
+        name: kubernetes
+        state: absent
+
+    - name: Stop and disable containerd
+      systemd:
+        name: containerd
+        state: stopped
+        enabled: no
+
+    - name: Remove containerd.io
+      yum:
+        name: containerd.io
+        state: absent
+
+    - name: Remove Docker repository
+      yum_repository:
+        name: docker-ce-stable
+        state: absent
+
+    - name: Remove Docker components
+      yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+        state: absent
+
+    - name: Restore /etc/hosts file
+      blockinfile:
+        path: /etc/hosts
+        marker: "# BEGIN ANSIBLE MANAGED BLOCK"
+        insertbefore: BOF
+        block: |
+          # Commented out by Ansible during rollback
+
+    - name: Re-enable SWAP (if it was disabled)
+      blockinfile:
+        path: /etc/fstab
+        marker: "# BEGIN ANSIBLE MANAGED BLOCK"
+        insertbefore: BOF
+        block: |
+          # Uncommented by Ansible during rollback
+          # /dev/mapper/centos-swap swap                    swap    defaults        0 0
+      when: "'/dev/mapper/centos-swap swap' not in ansible_facts.mounts | map(attribute='device') | list"
+
+    - name: Reload sysctl settings
+      command: sysctl --system
+      become: true

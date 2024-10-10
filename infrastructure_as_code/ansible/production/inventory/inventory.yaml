@@ -1,0 +1,18 @@
+kubernetesnodes:
+  hosts:
+    kmaster:
+      ansible_host: 172.8.9.41
+    kworker:
+      ansible_host: 172.8.9.40
+
+kubernetesmaster:
+  hosts:
+    kmaster:
+      ansible_host: 172.8.9.41
+
+kubernetesworker:
+  hosts:
+    kworker:
+      ansible_host: 172.8.9.40
+
+    

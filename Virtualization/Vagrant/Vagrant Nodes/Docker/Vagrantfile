@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+VAGRANT_BOX         = "generic/ubuntu2204"
+VAGRANT_BOX_VERSION = "4.2.10"
+DOCKERS_MEMORY = 2048
+DOCKERS_CPUS = 2
+ANSIBLE_MEMORY = 2048
+ANSIBLE_CPUS = 2
+
+
+Vagrant.configure(2) do |config|
+
+  config.vm.provision "shell", path: "scripts/bootstrap.sh"
+
+    # Provision Jenkins server
+    config.vm.define "docker" do |docker|
+        docker.vm.box = VAGRANT_BOX
+        docker.vm.box_check_update = false
+        docker.vm.box_version = VAGRANT_BOX_VERSION
+        docker.vm.hostname = "docker.example.com"
+      
+        docker.vm.network "private_network", ip: "172.16.16.202"
+      
+        docker.vm.provider :virtualbox do |v|
+          v.name = "docker"
+          v.memory = DOCKERS_MEMORY
+          v.cpus = DOCKERS_CPUS
+        end
+      
+        docker.vm.provider :libvirt do |v|
+          v.memory = DOCKERS_MEMORY
+          v.nested = true
+          v.cpus = DOCKERS_CPUS
+        end
+      
+        docker.vm.provision "shell", path: "scripts/bootstrap_dockers.sh"
+    end
+    
+end

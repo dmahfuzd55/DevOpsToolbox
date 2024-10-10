@@ -1,0 +1,94 @@
+---
+- name: Install Containerd on CentOS 8
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Clean DNF Cache
+      shell: dnf clean all
+    
+    - name: Disable and turn off SWAP
+      lineinfile:
+        path: /etc/fstab
+        state: absent
+        regexp: '^.*swap.*$'
+      ignore_errors: yes
+      become: true
+
+    - name: Disable SWAP (immediate effect)
+      command: swapoff -a
+      ignore_errors: yes
+      become: true
+
+    - name: Enable and Load Kernel modules
+      shell: >
+        echo "overlay" > /etc/modules-load.d/containerd.conf &&
+        echo "br_netfilter" >> /etc/modules-load.d/containerd.conf
+      become: true
+
+    - name: Add Kernel settings
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        sysctl_file: /etc/sysctl.d/kubernetes.conf
+        reload: yes
+      loop:
+        - { name: "net.bridge.bridge-nf-call-ip6tables", value: 1 }
+        - { name: "net.bridge.bridge-nf-call-iptables", value: 1 }
+        - { name: "net.ipv4.ip_forward", value: 1 }
+
+    - name: Install required packages
+      dnf:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Add Docker CE repository
+      command: dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+    - name: Install Containerd
+      dnf:
+        name: containerd.io
+        state: present
+
+    - name: Configure Containerd
+      command: containerd config default | tee /etc/containerd/config.toml && sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+
+    - name: Restart and enable Containerd
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+    - name: Add repo for Kubernetes
+      copy:
+        dest: /etc/yum.repos.d/kubernetes.repo
+        content: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+          enabled=1
+          gpgcheck=1
+          repo_gpgcheck=1
+          gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      become: true
+
+    - name: Install Kubernetes components (kubeadm, kubelet, kubectl)
+      yum:
+        name:
+          - kubeadm
+          - kubelet
+          - kubectl
+        state: present
+      become: true
+
+    - name: Update /etc/hosts file
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      loop:
+        - "172.16.16.100   kmaster.eai.com    kmaster"
+        - "172.16.16.101   kworker1.eai.com   kworker1"
+        - "172.16.16.102   kworker2.eai.com   kworker2"
+    

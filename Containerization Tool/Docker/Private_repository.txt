@@ -1,0 +1,64 @@
+
+Step-1: First need following configuration
+
+Windows: From Docker Destop go Docker Engine section and add following code
+{
+  "insecure-registries": ["172.8.9.41:5000"]
+}
+
+Linux: vim /etc/docker/daemon.json
+{
+  "insecure-registries": ["172.8.9.41:5000"]
+}
+
+
+
+
+
+PS D:\Express\FetchTDRDTermDetails\Frontend\FetchTDRDCalculatorTest> docker push 172.8.9.41:5000/orbit-frontend:v1.0
+An image does not exist locally with the tag: 172.8.9.41:5000/orbit-frontend
+PS D:\Express\FetchTDRDTermDetails\Frontend\FetchTDRDCalculatorTest> docker tag 19dd9b79c2a1 172.8.9.41:5000/orbit-frontend
+PS D:\Express\FetchTDRDTermDetails\Frontend\FetchTDRDCalculatorTest> docker images
+REPOSITORY                       TAG       IMAGE ID       CREATED          SIZE
+172.8.9.41:5000/orbit-frontend   latest    19dd9b79c2a1   58 minutes ago   1.21GB
+orbit-frontend                   v1.0      19dd9b79c2a1   58 minutes ago   1.21GB
+PS D:\Express\FetchTDRDTermDetails\Frontend\FetchTDRDCalculatorTest> docker push 172.8.9.41:5000/orbit-frontend:v1.0       
+The push refers to repository [172.8.9.41:5000/orbit-frontend]
+tag does not exist: 172.8.9.41:5000/orbit-frontend:v1.0
+PS D:\Express\FetchTDRDTermDetails\Frontend\FetchTDRDCalculatorTest> docker tag 19dd9b79c2a1 172.8.9.41:5000/orbit-frontend:v1.0
+PS D:\Express\FetchTDRDTermDetails\Frontend\FetchTDRDCalculatorTest> docker images
+REPOSITORY                       TAG       IMAGE ID       CREATED             SIZE
+orbit-frontend                   v1.0      19dd9b79c2a1   About an hour ago   1.21GB
+172.8.9.41:5000/orbit-frontend   latest    19dd9b79c2a1   About an hour ago   1.21GB
+172.8.9.41:5000/orbit-frontend   v1.0      19dd9b79c2a1   About an hour ago   1.21GB
+PS D:\Express\FetchTDRDTermDetails\Frontend\FetchTDRDCalculatorTest> docker push 172.8.9.41:5000/orbit-frontend:v1.0
+
+
+
+[eai@Orbit-digital-Banking-Products ~]$ docker ps                                   
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES              
+[eai@Orbit-digital-Banking-Products ~]$ docker images                               
+REPOSITORY                       TAG       IMAGE ID       CREATED          SIZE     
+172.8.9.41:5000/orbit-frontend   v1.0      a018c14057be   33 minutes ago   1.21GB   
+[eai@Orbit-digital-Banking-Products ~]$ docker run -d -p 3000:80 --name orbit-fronte
+nd a018c14057be                                                                     
+a778758fa9e7484f1b938580cad9538e6fb608f391eed9c62ab0e486015c25f1                    
+[eai@Orbit-digital-Banking-Products ~]$ docker ps                                   
+CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS       
+  PORTS                                             NAMES                           
+a778758fa9e7   a018c14057be   "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes 
+  3000/tcp, 0.0.0.0:3000->80/tcp, :::3000->80/tcp   orbit-frontend                  
+[eai@Orbit-digital-Banking-Products ~]$ docker ps                                   
+CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS       
+  PORTS                                             NAMES                           
+a778758fa9e7   a018c14057be   "docker-entrypoint.s…"   2 minutes ago   Up 2 minutes 
+  3000/tcp, 0.0.0.0:3000->80/tcp, :::3000->80/tcp   orbit-frontend                  
+[eai@Orbit-digital-Banking-Products ~]$ docker rm -f a778758fa9e7                   
+a778758fa9e7                                                                        
+[eai@Orbit-digital-Banking-Products ~]$ docker ps                                   
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES              
+[eai@Orbit-digital-Banking-Products ~]$ docker ps -a                                
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES              
+[eai@Orbit-digital-Banking-Products ~]$ docker run -d -p 3000:3000 --name orbit-fron
+tend a018c14057be                                                                   
+9fb8675a429b9f7b7198fa59519dc14204575f32b147bca1220c43699acb556d

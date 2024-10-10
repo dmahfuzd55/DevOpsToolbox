@@ -1,0 +1,28 @@
+Vagrant.configure(2) do |config|
+
+  config.vm.provision "shell", path: "bootstrap.sh"
+
+  # Kubernetes Master Server
+  config.vm.define "workstation_public" do |node|
+  
+    node.vm.box               = VAGRANT_BOX
+    node.vm.box_check_update  = false
+    node.vm.box_version       = VAGRANT_BOX_VERSION
+    node.vm.hostname          = "workstation_public.eai.com"
+
+    # Use a bridged network for access from LAN
+    node.vm.network "public_network", bridge: "Realtek PCIe GbE Family Controller"
+
+    node.vm.provider :virtualbox do |v|
+      v.name    = "workstation_public"
+      v.memory  = MEMORY_WORKSTATION_NODE
+      v.cpus    = CPUS_WORKSTATION_NODE
+    end
+  
+    node.vm.provider :libvirt do |v|
+      v.memory  = MEMORY_WORKSTATION_NODE
+      v.nested  = true
+      v.cpus    = CPUS_WORKSTATION_NODE
+    end
+  end
+end

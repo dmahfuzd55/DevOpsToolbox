@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: bai-xml-nodeport-service
+  namespace: your-namespace
+spec:
+  selector:
+    app: bai-xml
+  ports:
+    - protocol: TCP
+      port: 8822
+      targetPort: 8822
+  type: NodePort

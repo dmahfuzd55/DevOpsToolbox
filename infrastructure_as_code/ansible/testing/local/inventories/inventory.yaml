@@ -1,0 +1,31 @@
+clusternodes:
+  hosts:
+    cmaster:
+      ansible_host: 172.16.16.100
+    cworker1:
+      ansible_host: 172.16.16.101
+    cworker2:
+      ansible_host: 172.16.16.102
+
+clustermaster:
+  hosts:
+    cmaster:
+      ansible_host: 172.16.16.100
+
+clusterworker:
+  hosts:
+    cworker1:
+      ansible_host: 172.16.16.101
+    cworker2:
+      ansible_host: 172.16.16.102
+
+clusterworker1:
+  hosts:
+    cworker1:
+      ansible_host: 172.16.16.101
+clusterworker2:
+  hosts:
+    cworker2:
+      ansible_host: 172.16.16.102
+
+    

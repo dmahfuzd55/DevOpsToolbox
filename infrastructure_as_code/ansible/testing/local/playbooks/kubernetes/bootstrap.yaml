@@ -1,0 +1,154 @@
+---
+- name: Configure Kubernetes Nodes
+  hosts: clusternodes
+  become: true
+
+  vars:
+    docker_ce_repo_key: https://download.docker.com/linux/centos/gpg
+    containerd_repo_key:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    containerd_repo_url: https://download.docker.com/linux/centos/7/x86_64/stable
+
+  tasks:
+    - name: Update YUM repository
+      yum:
+        name: "*"
+        state: latest
+
+    - name: Disable and turn off SWAP
+      lineinfile:
+        path: /etc/fstab
+        state: absent
+        regexp: '^.*swap.*$'
+      ignore_errors: yes
+
+    - name: Enable and Load Kernel modules
+      modprobe:
+        name: "{{ item }}"
+      loop:
+        - overlay
+        - br_netfilter
+
+    - name: Add Kernel settings
+      sysctl:
+        name: "{{ item.name }}"
+        value: "{{ item.value }}"
+        sysctl_file: /etc/sysctl.d/kubernetes.conf
+        reload: yes
+      loop:
+        - { name: "net.bridge.bridge-nf-call-ip6tables", value: 1 }
+        - { name: "net.bridge.bridge-nf-call-iptables", value: 1 }
+        - { name: "net.ipv4.ip_forward", value: 1 }
+
+    
+- name: Install and Configure Containerd
+  hosts: all
+  become: true
+  tasks:
+    - name: Install required packages
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+
+    - name: Add Containerd repository
+      yum_repository:
+        name: containerd
+        description: Containerd Repository
+        baseurl: https://download.docker.com/linux/centos/docker-ce.repo
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        enabled: yes
+
+    - name: Install Containerd
+      yum:
+        name: containerd.io
+        state: present
+
+    - name: Configure Containerd
+      copy:
+        src: /path/to/containerd-config.toml
+        dest: /etc/containerd/config.toml
+      notify:
+        - restart containerd
+
+    - name: Enable Containerd on system boot
+      systemd:
+        name: containerd
+        enabled: yes
+        state: started
+
+    - name: Check Containerd status
+      systemd:
+        name: containerd
+        state: started
+      register: containerd_status
+
+    - name: Print Containerd status
+      debug:
+        var: containerd_status
+
+  handlers:
+    - name: restart containerd
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    - name: Add repo for Kubernetes
+      yum_repository:
+        name: kubernetes
+        description: Kubernetes
+        baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+        gpgcheck: yes
+        repo_gpgcheck: yes
+        gpgkey: "{{ containerd_repo_key }}"
+        enabled: yes
+
+    - name: Install Kubernetes components (kubeadm, kubelet, kubectl)
+      yum:
+        name:
+          - kubeadm
+          - kubelet
+          - kubectl
+        state: present
+
+    - name: Update /etc/hosts file
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ item }}"
+      loop:
+        - "172.16.16.100   kmaster.eai.com    kmaster"
+        - "172.16.16.101   kworker1.eai.com   kworker1"
+        - "172.16.16.102   kworker2.eai.com   kworker2"
+    
+    - name: Verify Containerd installation
+      command: containerd --version
+      register: containerd_version
+      ignore_errors: yes
+
+    - name: Verify Docker installation
+      command: docker --version
+      register: docker_version
+      ignore_errors: yes
+
+    - name: Verify Kubernetes components installation
+      command: kubeadm version
+      register: kubeadm_version
+      ignore_errors: yes
+
+    - name: Verify kubectl installation
+      command: kubectl version --client
+      register: kubectl_version
+      ignore_errors: yes
+
+    - name: Print version information
+      debug:
+        msg: |
+          Containerd Version: {{ containerd_version.stdout }}
+          Docker Version: {{ docker_version.stdout }}
+          Kubeadm Version: {{ kubeadm_version.stdout }}
+          Kubectl Version: {{ kubectl_version.stdout }}

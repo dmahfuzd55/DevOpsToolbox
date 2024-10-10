@@ -1,0 +1,53 @@
+filebeatConfig:
+  filebeat.yml: |
+    filebeat.inputs:
+    - type: container
+      paths:
+        - /var/log/pods/*/*/*.log  # Path for Kubernetes pod logs
+      processors:
+      - add_kubernetes_metadata:
+          host: ${NODE_NAME}
+          matchers:
+          - logs_path:
+              logs_path: "/var/log/pods/"
+
+    output.logstash:
+      hosts: ["172.8.9.52:5044"]  # Logstash server IP and port
+      ssl.enabled: false
+
+# Enable autodiscover for Kubernetes
+autodiscover:
+  providers:
+    - type: kubernetes
+      host: ${NODE_NAME}
+      hints.enabled: true
+
+# Set the resource limits for Filebeat pods
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+# Configure the Kubernetes daemonset
+daemonset:
+  enabled: true
+
+# Specify the volumes and mounts to collect logs from Kubernetes nodes
+volumes:
+  - name: varlogpods
+    hostPath:
+      path: /var/log/pods
+  - name: varlibdockercontainers
+    hostPath:
+      path: /var/lib/docker/containers
+    readOnly: true
+
+volumeMounts:
+  - name: varlogpods
+    mountPath: /var/log/pods
+  - name: varlibdockercontainers
+    mountPath: /var/lib/docker/containers
+    readOnly: true

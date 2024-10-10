@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  oracle:
+    image: container-registry.oracle.com/database/enterprise:latest  # Oracle Database Enterprise Edition 21c
+    container_name: oracle
+    environment:
+      - ORACLE_PWD=top_secret  # Sets the password for the SYS, SYSTEM, and PDBADMIN users
+    ports:
+      - 1521:1521  # Maps the host port 1521 to the container port 1521 for Oracle's TNS listener

@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: 'nodejs'
+    static_configs:
+      - targets: ['172.30.6.77:8844']
+  - job_name: 'dotnetcore'
+    static_configs:
+      - targets: ['172.30.6.77:5000']

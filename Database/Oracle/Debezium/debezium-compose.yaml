@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  debezium:
+    image: debezium/connect:1.9
+    container_name: connect
+    environment:
+      BOOTSTRAP_SERVERS: 172.23.211.31:9092,172.23.211.32:9092,172.23.211.33:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      STATUS_STORAGE_TOPIC: connect_statuses
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://172.23.190.52:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://172.23.190.52:8081
+      LD_LIBRARY_PATH: '/kafka/external_libs/instantclient_19_6/'
+    ports:
+      - 8083:8083

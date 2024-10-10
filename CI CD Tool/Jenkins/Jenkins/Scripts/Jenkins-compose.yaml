@@ -1,0 +1,10 @@
+docker run \
+  --name jenkins \
+  --detach \
+  --publish 8080:8080 \  # Bind host port 8080 to container port 8080
+  --publish 50000:50000 \  # Bind host port 50000 to container port 50000 for Jenkins agent connections
+  --volume /path/on/host/jenkins_home:/var/jenkins_home \
+  jenkins/jenkins:lts
+
+
+  

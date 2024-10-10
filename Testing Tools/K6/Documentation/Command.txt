@@ -1,0 +1,6 @@
+docker-k6-grafana-influxdb
+
+To Run Project
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/K6/K6-Local-Testing/K6-Local-Testing$ sudo docker-compose up -d influxdb grafana
+
+dmahfuzd@DESKTOP-OFAE9ET:/mnt/d/DevOps/K6/K6-Local-Testing/K6-Local-Testing$ docker-compose run k6 run /scripts/stress-test.js

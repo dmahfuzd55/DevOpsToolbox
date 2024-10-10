@@ -1,0 +1,14 @@
+---
+- name: Bootstrap Kubernetes
+  hosts: kubernetesnodes
+  become: true  # Run tasks with sudo
+
+  tasks:
+    - name: Copy bootstrap script
+      copy:
+        src: /mnt/d/DevOps/Ansible/Scripts/Kubernetes/bootstrap_kworker.sh
+        dest: /tmp/bootstrap_kworker.sh
+        mode: 0755  # Make the script executable
+
+    - name: Execute bootstrap script
+      command: /tmp/bootstrap_kworker.sh

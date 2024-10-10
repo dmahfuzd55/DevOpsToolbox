@@ -1,0 +1,19 @@
+---
+- name: Bootstrap Kubernetes
+  hosts: kubernetesmaster
+  become: true  # Run tasks with sudo
+
+  tasks:
+    - name: Debug
+      debug:
+        var: ansible_user_dir
+
+    - name: Copy bootstrap_kmaster script
+      copy:
+        src: "/mnt/d/DevOps/GitHub/DevOps/Infrastructure_as_code/Ansible/Testing/Local/Scripts/Kubernetes/bootstrap_kmaster.sh"
+        dest: "/tmp/bootstrap_kmaster.sh"
+        mode: 0755
+        
+
+    - name: Execute bootstrap_kmaster script
+      command: /tmp/bootstrap_kmaster.sh
